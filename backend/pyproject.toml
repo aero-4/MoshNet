@@ -1,0 +1,29 @@
+[project]
+name = "netmoshen"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "aero-4",email = "dimongames6@gmail.com"}
+]
+requires-python = ">=3.13"
+dependencies = [
+    "fastapi (>=0.139.0,<0.140.0)",
+    "pydantic (>=2.13.4,<3.0.0)",
+    "sqlalchemy (>=2.0.51,<3.0.0)",
+    "sqladmin (>=0.28.0,<0.29.0)",
+    "pydantic-settings (>=2.14.2,<3.0.0)",
+    "alembic (>=1.18.5,<2.0.0)",
+    "httpx (>=0.28.1,<0.29.0)",
+    "uvicorn (>=0.50.0,<0.51.0)",
+    "pytest (>=9.1.1,<10.0.0)",
+    "pytest-asyncio (>=1.4.0,<2.0.0)"
+]
+
+
+[tool.poetry]
+package-mode = false
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"

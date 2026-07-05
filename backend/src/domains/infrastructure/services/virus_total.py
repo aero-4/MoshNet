@@ -1,0 +1,76 @@
+from core.settings import settings
+from domains.domain.entities import BadStatus, DomainInfo
+from domains.infrastructure.services.request import API
+
+
+class VirusTotalService:
+    BAD_CATEGORIES = {"malicious", "suspicious"}
+    BAD_RESULTS = {
+        "malicious",
+        "suspicious",
+        "phishing",
+        "malware",
+        "spam",
+        "scam",
+        "blacklist",
+        "blacklisted",
+    }
+
+    def __init__(self):
+        self.base_url = "https://www.virustotal.com"
+        self.headers = {"x-apikey": settings.VIRUS_TOTAL_API_KEY,
+                        "accept": "application/json"}
+        self.api = API(headers=self.headers)
+
+    async def get_info(self, domain: str) -> DomainInfo:
+        data = await self.get_domain_info(domain)
+        attributes = data.get("data", {}).get("attributes", {})
+
+        return DomainInfo(
+            domain_org=domain,
+            last_analysis_stats=attributes.get("last_analysis_stats"),
+            bad_statuses=self.extract_bad_statuses(attributes),
+        )
+
+    async def get_domain_info(self, domain: str) -> dict:
+        return await self.api.send_request(
+            "GET",
+            f"{self.base_url}/api/v3/domains/{domain}",
+        )
+
+    async def scan_url(self, url: str) -> dict:
+        return await self.api.send_request(
+            "POST",
+            f"{self.base_url}/api/v3/urls",
+            headers={
+                **self.headers,
+                "content-type": "application/x-www-form-urlencoded",
+            },
+            data={"url": url},
+        )
+
+    async def analysis_info(self, id: str):
+        data = await self.api.send_request("GET",
+                                           f"{self.base_url}/api/v3/analyses/{id}",
+                                           headers=self.headers)
+        return data
+
+    def extract_bad_statuses(self, attributes: dict) -> list[BadStatus]:
+        results = attributes.get("last_analysis_results") or {}
+        bad_statuses = []
+
+        for source, result_data in results.items():
+            category = result_data.get("category")
+            result = result_data.get("result")
+            normalized_result = str(result).lower() if result else None
+
+            if category in self.BAD_CATEGORIES or normalized_result in self.BAD_RESULTS:
+                bad_statuses.append(
+                    BadStatus(
+                        source=source,
+                        category=category,
+                        result=result,
+                    )
+                )
+
+        return bad_statuses

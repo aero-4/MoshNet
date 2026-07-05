@@ -1,0 +1,77 @@
+{
+  'query': 'google.com',
+  'domain': 'google.com',
+  'domainUnicode': None,
+  'id': '2138514_DOMAIN_COM-VRSN',
+  'tld': 'com',
+  'isRegistered': True,
+  'registrar': {
+    'name': 'MarkMonitor Inc.',
+    'ianaId': '292',
+    'url': 'http://www.markmonitor.
+    com
+    ', '
+    whoisServer
+    ': None, '
+    abuseEmail
+    ': '
+    abusecomplaints@markmonitor.com
+    ', '
+    abusePhone
+    ': '
+    tel:
+    +
+    1.2086851750
+    ', '
+    reseller
+    ': None}, '
+    status
+    ': ['
+    clientDeleteProhibited
+    ', '
+    clientTransferProhibited
+    ', '
+    clientUpdateProhibited
+    ', '
+    serverDe
+    leteProhibited
+    ', '
+    serverTransferProhibited
+    ', '
+    serverUpdateProhibited
+    '], '
+    nameservers
+    ': [{'
+    name
+    ': '
+    ns1.google.com
+    ', '
+    ipv4
+    ': [], '
+    ipv6
+    ': []}, {'
+    name
+    ': '
+    ns2.google.com
+    ', '
+    ipv4
+    ': [], '
+    ipv6
+    ': []}, {'
+    name
+    ': '
+    ns3.google.com
+    ', '
+    ipv4
+    ': [],
+    'ipv6': []
+  }, {
+  'name': 'ns4.google.com',
+  'ipv4': [],
+  'ipv6': []
+}], 'dnssec': {'signed': False, 'dsData': []}, 'dates': {'created': '1997-09-15T04:00:00Z', 'updated': '2019-09-09T15:39:04Z', 'expires': '2028-09-14T04:00:00Z'
+}, 'con
+tacts': {'registrant': {'name': None, 'organization': None, 'email': None, 'phone': None, 'address': {'street': None, 'city': None, 'state': None, 'postalCode': None, 'country': None}, 'redacted': True}, 'admin': {'name': None, 'o
+rganization': None, 'email': None, 'phone': None, 'address': {'street': None, 'city': None, 'state': None, 'postalCode': None, 'country': None}, 'redacted': True}, 'tech': {'name': None, 'organization': None, 'email': None, 'phone
+': None, 'address': {'street': None, 'city': None, 'state': None, 'postalCode': None, 'country': None}, 'redacted': True}, 'billing': {'name': None, 'organization': None, 'email': None, 'phone': None, 'address': {'street': None, '
+city': None, 'state': None, 'postalCode': None, 'country': None}, 'redacted': True}}, 'meta': {'source': 'rdap', 'server': 'https: //rdap.verisign.com/com/v1', 'fetchedAt': '2026-07-05T08:46:18.691169008Z', 'cached': False}}
