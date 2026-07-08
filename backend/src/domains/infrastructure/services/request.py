@@ -2,13 +2,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from httpx import AsyncClient
 
 
-class API:
+class Client:
 
     def __init__(self, headers: dict = None, cookies: dict = None):
         self.headers = headers
         self.cookies = cookies
 
-    async def send_request(self, method: str = "GET", url: str = "", headers: dict = None, data: dict = None, timeout: float = 10.0):
+    async def send_request(self, method: str = "GET", url: str = "", headers: dict = None, data: dict = None, timeout: float = 10.0, json: bool = True):
         async with AsyncClient(headers=headers or self.headers, cookies=self.cookies) as client:
             response = await client.request(
                 method,
@@ -19,4 +19,4 @@ class API:
                 timeout=timeout
             )
             response.raise_for_status()
-            return response.json()
+            return response.json() if json else response.text

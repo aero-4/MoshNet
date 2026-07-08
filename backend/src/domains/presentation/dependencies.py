@@ -7,4 +7,3 @@ def get_domain_analyzer():
     return DomainsAnalyze()
 
 
-DomainAnalyzeDep = Depends(get_domain_analyzer)

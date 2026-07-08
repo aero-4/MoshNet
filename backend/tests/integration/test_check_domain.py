@@ -1,5 +1,6 @@
 import pytest
 
+from domains.infrastructure.services.site_parser import SiteParser
 from domains.infrastructure.services.virus_total import VirusTotalService
 from domains.infrastructure.services.whois import WhoDatAsService
 
@@ -24,10 +25,11 @@ async def test_check_domain_virus_total(domain):
 
 
 async def test_check_domain_virus_total_bad_statuses():
+    domain = "www.xv-ru.com"
     service = VirusTotalService()
-    data = await service.get_info(domain="www.xv-ru.com")
+    data = await service.get_info(domain=domain)
 
-    assert data.domain_org == "www.xv-ru.com"
+    assert data.domain_org == domain
     assert data.bad_statuses
     assert any(
         status.category in service.BAD_CATEGORIES
@@ -35,3 +37,11 @@ async def test_check_domain_virus_total_bad_statuses():
         for status in data.bad_statuses
     )
 
+
+async def test_check_domain_site_parser():
+    url = "https://www.xv-ru.com/"
+    service = SiteParser()
+    data = await service.get_info(url)
+
+    assert data.get("url") == url
+    assert data.get("available") == True

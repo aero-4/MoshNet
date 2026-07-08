@@ -1,9 +1,10 @@
 from core.settings import settings
 from domains.domain.entities import BadStatus, DomainInfo
-from domains.infrastructure.services.request import API
+from domains.domain.interfaces.service import ServiceI
+from domains.infrastructure.services.request import Client
 
 
-class VirusTotalService:
+class VirusTotalService(ServiceI):
     BAD_CATEGORIES = {"malicious", "suspicious"}
     BAD_RESULTS = {
         "malicious",
@@ -20,7 +21,7 @@ class VirusTotalService:
         self.base_url = "https://www.virustotal.com"
         self.headers = {"x-apikey": settings.VIRUS_TOTAL_API_KEY,
                         "accept": "application/json"}
-        self.api = API(headers=self.headers)
+        self.api = Client(headers=self.headers)
 
     async def get_info(self, domain: str) -> DomainInfo:
         data = await self.get_domain_info(domain)

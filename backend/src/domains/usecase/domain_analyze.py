@@ -1,5 +1,4 @@
 from domains.domain.entities import Domain
-from domains.presentation.dependencies import DomainAnalyzeDep
 
 
 async def start_domain_analyze(domain: Domain, domain_dep):
