@@ -16,7 +16,8 @@ class SiteParser(ServiceI):
         url = self._normalize_url(domain)
 
         try:
-            html = await self.client.send_request("GET", url, json=False)
+            html = await self.client.send_request("GET", url, return_json=False)
+
         except Exception as exc:
             return {
                 "available": False,

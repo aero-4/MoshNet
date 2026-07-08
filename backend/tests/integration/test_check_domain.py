@@ -1,5 +1,6 @@
 import pytest
 
+from domains.infrastructure.services.safebrowsing import GoogleSafeBrowsing
 from domains.infrastructure.services.site_parser import SiteParser
 from domains.infrastructure.services.virus_total import VirusTotalService
 from domains.infrastructure.services.whois import WhoDatAsService
@@ -45,3 +46,9 @@ async def test_check_domain_site_parser():
 
     assert data.get("url") == url
     assert data.get("available") == True
+
+
+async def test_check_domain_google_safe_browsing():
+    url = "https://www.xv-ru.com"
+    service = GoogleSafeBrowsing()
+    data = await service.get_info(url)

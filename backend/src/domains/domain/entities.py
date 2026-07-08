@@ -6,6 +6,8 @@ import pydantic
 from fastapi import HTTPException
 from pydantic import BaseModel, Field
 
+from domains.domain.interfaces.service import ServiceI
+
 
 class Domain(BaseModel):
     domain: str
@@ -33,3 +35,11 @@ class DomainInfo(BaseModel):
     registrant: dict | None = None
     last_analysis_stats: dict | None = None
     bad_statuses: list[BadStatus] = Field(default_factory=list)
+
+
+class DomainAnalyze(BaseModel):
+    risk_score: int = 0
+    whois: DomainInfo
+    virustotal:  DomainInfo
+    site: dict
+    safebrowsing: dict
