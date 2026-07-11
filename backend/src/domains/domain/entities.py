@@ -4,7 +4,7 @@ from typing import Any
 
 import pydantic
 from fastapi import HTTPException
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from domains.domain.interfaces.service import ServiceI
 
@@ -12,13 +12,26 @@ from domains.domain.interfaces.service import ServiceI
 class Domain(BaseModel):
     domain: str
 
-    @pydantic.field_validator("domain", mode="after")
-    def validate_domain_format(cls, v: Any):
-        url_pattern = r"((http|https)\:\/\/)?[a-zA-Z0-9\.\/\?\:@\-_=#]+\.([a-zA-Z]){2,6}([a-zA-Z0-9\.\&\/\?\:@\-_=#])*"
-        if not re.search(url_pattern, v):
-            raise HTTPException(status_code=403, detail="Ссылка имеет неправильный формат")
+    @field_validator("domain", mode="after")
+    @classmethod
+    def validate_domain_format(cls, v: str) -> str:
+        url_pattern = re.compile(
+            r"^(https?://)?"
+            r"(www\.)?"
+            r"(?P<domain>([a-zA-Z0-9\-]+\.)+[a-zA-Z]{2,6})"
+            r"(/[a-zA-Z0-9\.\&\/\?\:@\-_=#%~]*)*$"
+        )
 
-        return v
+        match = url_pattern.match(v.strip())
+
+        if not match:
+            raise HTTPException(
+                status_code=403, detail="Ссылка имеет неправильный формат"
+            )
+
+        clean_domain = match.group("domain")
+
+        return clean_domain
 
 
 class BadStatus(BaseModel):
@@ -40,6 +53,6 @@ class DomainInfo(BaseModel):
 class DomainAnalyze(BaseModel):
     risk_score: int = 0
     whois: DomainInfo
-    virustotal:  DomainInfo
+    virustotal: DomainInfo
     site: dict
     safebrowsing: dict

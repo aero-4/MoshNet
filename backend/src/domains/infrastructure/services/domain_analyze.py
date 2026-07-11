@@ -3,6 +3,7 @@ import datetime
 from typing import Any
 
 import httpx
+from dateutil.parser import parser, isoparse, parse
 
 from domains.domain.entities import Domain, DomainInfo, DomainAnalyze
 from domains.domain.interfaces.service import ServiceI
@@ -36,28 +37,29 @@ class DomainsAnalyze:
         return result
 
     async def risk_score(self, domain: str, data_info: DomainAnalyze):
-        data_info.risk_score = 0
+        self._age_score(data_info)  # возраст домена
+        self._virus_total_score(data_info)  # вирус тотал
 
-        self._age(data_info)  # возраст домена
-        await self._has_https(data_info, domain)  # есть ли SSL
-        self._virus_total_score(data_info)
+        await self._has_https_score(data_info, domain)  # есть ли SSL
 
     def _virus_total_score(self, data_info: DomainAnalyze):
-        data_info.risk_score += len(data_info.virustotal.bad_statuses) * 50
+        data_info.risk_score += len(data_info.virustotal.bad_statuses) * 100
 
-    async def _has_https(self, data_info: DomainAnalyze, domain: str) -> None:
+    async def _has_https_score(self, data_info: DomainAnalyze, domain: str) -> None:
         domain = domain if "https://" in domain else f"https://{domain}"
         try:
             await self.client.send_request(url=domain, return_json=False)
         except httpx.HTTPError:
             data_info.risk_score += 50
 
-    def _age(self, data_info: DomainAnalyze) -> None:
+    def _age_score(self, data_info: DomainAnalyze) -> None:
         date = data_info.whois.created_at
         if not date:
-            return
+            return None
 
-        created_at = datetime.datetime.strptime(date, "%Y-%m-%dT%H:%M:%SZ")
+        created_at = parse(date)
+        created_at = created_at.replace(tzinfo=None)
+
         date_diff = (datetime.datetime.now() - created_at).days
 
         if date_diff < 30:

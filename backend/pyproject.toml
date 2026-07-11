@@ -18,7 +18,8 @@ dependencies = [
     "pytest (>=9.1.1,<10.0.0)",
     "pytest-asyncio (>=1.4.0,<2.0.0)",
     "user-agent (>=0.1.14,<0.2.0)",
-    "bs4 (>=0.0.2,<0.0.3)"
+    "bs4 (>=0.0.2,<0.0.3)",
+    "python-dateutil (>=2.9.0.post0,<3.0.0)"
 ]
 
 

@@ -48,7 +48,7 @@ class SiteParser(ServiceI):
                 "total": len(links),
                 "internal": len(internal_links),
                 "external": len(external_links),
-                "sample": links[:20],
+                "sample": links,
             },
             "forms": forms_info,
             "suspicious_signals": suspicious_signals,
