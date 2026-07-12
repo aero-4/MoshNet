@@ -1,9 +1,10 @@
 import pytest
 
-from domains.infrastructure.services.safebrowsing import GoogleSafeBrowsing
+from domains.infrastructure.services.google_safebrowsing import GoogleSafeBrowsing
 from domains.infrastructure.services.site_parser import SiteParser
 from domains.infrastructure.services.virus_total import VirusTotalService
 from domains.infrastructure.services.whois import WhoDatAsService
+from domains.infrastructure.services.yandex_safebrowsing import YandexSafeBrowsing
 
 
 @pytest.mark.parametrize(
@@ -49,6 +50,14 @@ async def test_check_domain_site_parser():
 
 
 async def test_check_domain_google_safe_browsing():
-    url = "https://www.xv-ru.com"
+    url = "wwwwwwwww.jodi.org"
     service = GoogleSafeBrowsing()
     data = await service.get_info(url)
+
+
+async def test_check_domain_yandex_safe_browsing():
+    url = "https://wwwwwwwww.jodi.org"
+    service = YandexSafeBrowsing()
+    data = await service.get_info(url)
+
+    assert data is not None

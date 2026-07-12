@@ -2,10 +2,10 @@ from domains.infrastructure.services.site_parser import SiteParser
 
 
 class FakeClient:
-    async def send_request(self, method: str, url: str, json: bool = True):
+    async def send_request(self, method: str, url: str, return_json: bool = True):
         assert method == "GET"
         assert url == "https://example.com"
-        assert json is False
+        assert return_json is False
 
         return """
         <html>

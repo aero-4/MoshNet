@@ -50,9 +50,22 @@ class DomainInfo(BaseModel):
     bad_statuses: list[BadStatus] = Field(default_factory=list)
 
 
-class DomainAnalyze(BaseModel):
+class GoogleSafeBrowsingInfo(BaseModel):
+    available: bool = False
+    safe: bool = True
+    matches: list = Field(default_factory=list)
+
+
+class YandexSafeBrowsingInfo(BaseModel):
+    available: bool = False
+    safe: bool = True
+    matches: list = Field(default_factory=list)
+
+
+class DomainAnalyzeInfo(BaseModel):
     risk_score: int = 0
     whois: DomainInfo
     virustotal: DomainInfo
     site: dict
-    safebrowsing: dict
+    google_safebrowsing: GoogleSafeBrowsingInfo
+    yandex_safebrowsing: YandexSafeBrowsingInfo

@@ -21,10 +21,12 @@ class VirusTotalService(ServiceI):
         self.base_url = "https://www.virustotal.com"
         self.headers = {"x-apikey": settings.VIRUS_TOTAL_API_KEY,
                         "accept": "application/json"}
-        self.api = Client(headers=self.headers)
+        self.client = Client(headers=self.headers)
 
     async def get_info(self, domain: str) -> DomainInfo:
         data = await self.get_domain_info(domain)
+        if not data:
+            return None
         attributes = data.get("data", {}).get("attributes", {})
 
         return DomainInfo(
@@ -33,14 +35,17 @@ class VirusTotalService(ServiceI):
             bad_statuses=self.extract_bad_statuses(attributes),
         )
 
-    async def get_domain_info(self, domain: str) -> dict:
-        return await self.api.send_request(
-            "GET",
-            f"{self.base_url}/api/v3/domains/{domain}",
-        )
+    async def get_domain_info(self, domain: str) -> dict | None:
+        try:
+            return await self.client.send_request(
+                "GET",
+                f"{self.base_url}/api/v3/domains/{domain}",
+            )
+        except:
+            return None
 
     async def scan_url(self, url: str) -> dict:
-        return await self.api.send_request(
+        return await self.client.send_request(
             "POST",
             f"{self.base_url}/api/v3/urls",
             headers={
@@ -51,9 +56,9 @@ class VirusTotalService(ServiceI):
         )
 
     async def analysis_info(self, id: str):
-        data = await self.api.send_request("GET",
+        data = await self.client.send_request("GET",
                                            f"{self.base_url}/api/v3/analyses/{id}",
-                                           headers=self.headers)
+                                              headers=self.headers)
         return data
 
     def extract_bad_statuses(self, attributes: dict) -> list[BadStatus]:

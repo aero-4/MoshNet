@@ -15,5 +15,7 @@ class Settings(BaseSettings):
 
     VIRUS_TOTAL_API_KEY: str | None = None
     GOOGLE_SAFE_BROWSING_API_KEY: str | None = None
+    YANDEX_SAFE_BROWSING_KEY: str | None = None
+
 
 settings = Settings()
