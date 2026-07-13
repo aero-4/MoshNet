@@ -1,37 +1,27 @@
-import datetime
-import re
-from typing import Any
+from urllib.parse import urlparse
 
-import pydantic
-from fastapi import HTTPException
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, model_validator
 
-from domains.domain.interfaces.service import ServiceI
 
 
 class Domain(BaseModel):
     domain: str
+    url: str | None = None
 
-    @field_validator("domain", mode="after")
-    @classmethod
-    def validate_domain_format(cls, v: str) -> str:
-        url_pattern = re.compile(
-            r"^(https?://)?"
-            r"(www\.)?"
-            r"(?P<domain>([a-zA-Z0-9\-]+\.)+[a-zA-Z]{2,6})"
-            r"(/[a-zA-Z0-9\.\&\/\?\:@\-_=#%~]*)*$"
-        )
+    @model_validator(mode="after")
+    def normalize_domain_data(self):
+        raw_value = self.domain.strip()
+        if not raw_value:
+            raise ValueError("Введите ссылку")
 
-        match = url_pattern.match(v.strip())
+        url = raw_value if raw_value.startswith(("http://", "https://")) else f"https://{raw_value}"
+        parsed = urlparse(url)
+        if not parsed.hostname:
+            raise ValueError("Ссылка имеет неправильный формат")
 
-        if not match:
-            raise HTTPException(
-                status_code=403, detail="Ссылка имеет неправильный формат"
-            )
-
-        clean_domain = match.group("domain")
-
-        return clean_domain
+        self.url = url
+        self.domain = parsed.hostname
+        return self
 
 
 class BadStatus(BaseModel):
@@ -62,10 +52,24 @@ class YandexSafeBrowsingInfo(BaseModel):
     matches: list = Field(default_factory=list)
 
 
+class SiteInfo(BaseModel):
+    available: bool = True
+    url: str
+    error: str | None = None
+    has_ssl: bool = False
+    title: str | None = None
+    description: str | None = None
+    screenshot: str | None = None
+    links: dict | None = None
+    forms: dict | None = None
+    suspicious_signals: list | None = None
+
+
 class DomainAnalyzeInfo(BaseModel):
     risk_score: int = 0
-    whois: DomainInfo
-    virustotal: DomainInfo
-    site: dict
-    google_safebrowsing: GoogleSafeBrowsingInfo
-    yandex_safebrowsing: YandexSafeBrowsingInfo
+    status: list[str] = []
+    whois: DomainInfo | None = None
+    virustotal: DomainInfo | None = None
+    site: SiteInfo | None = None
+    google_safebrowsing: GoogleSafeBrowsingInfo | None = None
+    yandex_safebrowsing: YandexSafeBrowsingInfo | None = None

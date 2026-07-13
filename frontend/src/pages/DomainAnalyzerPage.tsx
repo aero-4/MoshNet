@@ -9,8 +9,8 @@ import {SiteInfoCard} from "../components/SiteInfoCard";
 import {StatusCard} from "../components/StatusCard";
 import {analyzeDomain} from "../services/analyze";
 import type {AnalyzeResult} from "../types/analyze";
-import {normalizeDomain} from "../utils/domain";
 import {getAnalyzeCriteria, getSafetyState} from "../utils/safety";
+import {AboutSiteCard} from "../components/AboutSiteCard";
 
 export function DomainAnalyzerPage() {
     const [domain, setDomain] = useState("");
@@ -32,8 +32,7 @@ export function DomainAnalyzerPage() {
     async function handleSubmit(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
 
-        const normalizedDomain = normalizeDomain(domain);
-        if (!normalizedDomain) {
+        if (!domain) {
             setError("Введите сайт");
             setResult(null);
             setCriteria([]);
@@ -46,9 +45,9 @@ export function DomainAnalyzerPage() {
         setCriteria([]);
 
         try {
-            const payload = await analyzeDomain(normalizedDomain);
+            const payload = await analyzeDomain(domain);
             setResult(payload);
-            setDomain(normalizedDomain);
+            setDomain(domain);
             setCriteria(getAnalyzeCriteria(payload));
         } catch (requestError) {
             setError(
@@ -87,11 +86,13 @@ export function DomainAnalyzerPage() {
                     <StatusCard
                         domain={domain}
                         isLoading={isLoading}
-                        hasResult={Boolean(result)}
+                        hasResult={Boolean(result === null)}
                         safetyState={safetyState}
                         stats={stats}
                     />
                     <DomainInfoCard domain={domain} whois={whois}/>
+
+                    <AboutSiteCard/>
                 </section>
             </div>
         </main>

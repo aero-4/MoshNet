@@ -25,7 +25,7 @@ export function AnalyzeForm({
                 htmlFor="domain"
                 className="mb-2 block text-sm font-medium text-slate-700"
             >
-                Введите ссылку на сайт
+                Введите ссылку:
             </label>
             <div className="flex flex-col gap-3 text-xl sm:flex-row">
                 <div className="relative flex-1">

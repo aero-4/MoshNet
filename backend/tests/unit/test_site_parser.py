@@ -26,8 +26,25 @@ class FakeClient:
         """
 
 
+class FakePathClient:
+    async def send_request(self, method: str, url: str, return_json: bool = True):
+        assert method == "GET"
+        assert url == "http://example.com/catalog/item"
+        assert return_json is False
+
+        return """
+        <html>
+            <head>
+                <title>Product page</title>
+            </head>
+            <body></body>
+        </html>
+        """
+
+
 async def test_site_parser_extracts_page_signals():
     service = SiteParser(client=FakeClient())
+    service._make_screenshot = lambda url: None
 
     data = await service.get_info("example.com")
 
@@ -47,3 +64,15 @@ async def test_site_parser_extracts_page_signals():
         "password_input",
         "external_form_action",
     ]
+
+
+async def test_site_parser_keeps_original_url_with_scheme_and_path():
+    service = SiteParser(client=FakePathClient())
+    service._make_screenshot = lambda url: None
+
+    data = await service.get_info("http://example.com/catalog/item")
+
+    assert data["available"] is True
+    assert data["url"] == "http://example.com/catalog/item"
+    assert data["has_ssl"] is False
+    assert data["title"] == "Product page"

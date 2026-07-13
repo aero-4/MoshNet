@@ -1,4 +1,7 @@
+from pathlib import Path
+
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 from starlette.middleware.cors import CORSMiddleware
 
 from core.settings import settings
@@ -18,3 +21,6 @@ app.add_middleware(
 )
 
 app.include_router(router=api_router_domains, prefix="/domains")
+
+MEDIA_ROOT = Path(__file__).resolve().parents[2] / "media"
+app.mount("/media", StaticFiles(directory=MEDIA_ROOT, check_dir=False), name="media")

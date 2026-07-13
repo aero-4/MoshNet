@@ -27,39 +27,54 @@ class DomainsAnalyze:
 
     async def run(self, domain_data: Domain) -> DomainAnalyzeInfo:
         keys = list(self.services.keys())
+        service_inputs = {
+            "whois": domain_data.domain,
+            "virustotal": domain_data.domain,
+            "site": domain_data.url,
+            "google_safebrowsing": domain_data.url,
+            "yandex_safebrowsing": domain_data.url,
+        }
         result = await asyncio.gather(*[
-            service.get_info(domain_data.domain) for service in self.services.values()
+            service.get_info(service_inputs[key]) for key, service in self.services.items()
         ])
         result = DomainAnalyzeInfo(**dict(zip(keys, result)))
 
-        await self.risk_score(domain_data.domain, result)
+        self.risk_score(result)
 
         return result
 
-    async def risk_score(self, domain: str, data_info: DomainAnalyzeInfo):
+    def risk_score(self, data_info: DomainAnalyzeInfo):
         self._age_score(data_info)
         self._virus_total_score(data_info)
         self._google_safe_browse_score(data_info)
         self._yandex_safe_browse_score(data_info)
-        await self._has_https_score(data_info, domain)
+        self._has_https_score(data_info)
 
     def _google_safe_browse_score(self, data_info: DomainAnalyzeInfo):
         if data_info.google_safebrowsing.available and not data_info.google_safebrowsing.safe:
             data_info.risk_score += max(len(data_info.google_safebrowsing.matches), 1) * 100
 
+            for status in data_info.yandex_safebrowsing.matches:
+                data_info.status.append(f"Категория проверки {status} - присвоен статус: {status}")
+
     def _yandex_safe_browse_score(self, data_info: DomainAnalyzeInfo):
         if data_info.yandex_safebrowsing.available and not data_info.yandex_safebrowsing.safe:
             data_info.risk_score += max(len(data_info.yandex_safebrowsing.matches), 1) * 100
 
-    def _virus_total_score(self, data_info: DomainAnalyzeInfo):
-        data_info.risk_score += len(data_info.virustotal.bad_statuses) * 100
+            for status in data_info.yandex_safebrowsing.matches:
+                data_info.status.append(f"Категория проверки {status} - присвоен статус: {status}")
 
-    async def _has_https_score(self, data_info: DomainAnalyzeInfo, domain: str) -> None:
-        domain = domain if "https://" in domain else f"https://{domain}"
-        try:
-            await self.client.send_request(url=domain, return_json=False)
-        except httpx.HTTPError:
-            data_info.risk_score += 50
+    def _virus_total_score(self, data_info: DomainAnalyzeInfo):
+        if data_info.virustotal and len(data_info.virustotal.bad_statuses) > 0:
+            data_info.risk_score += len(data_info.virustotal.bad_statuses) * 100
+
+            for status in data_info.virustotal.bad_statuses:
+                data_info.status.append(f"Проверка от {status.source} - присвоен статус: {status.result}")
+
+    def _has_https_score(self, data_info: DomainAnalyzeInfo) -> None:
+        if not data_info.site.has_ssl:
+            data_info.risk_score += 100
+            data_info.status.append("Домен не подключен к SSL")
 
     def _age_score(self, data_info: DomainAnalyzeInfo) -> None:
         date = data_info.whois.created_at
@@ -74,10 +89,13 @@ class DomainsAnalyze:
 
         if date_diff < 30:
             data_info.risk_score += 30
+            data_info.status.append("Домен зарегистрирован меньше чем 1 месяца назад")
         elif date_diff < 60:
             data_info.risk_score += 20
+            data_info.status.append("Домен зарегистрирован меньше чем 2 месяцев назад")
         elif date_diff < 90:
             data_info.risk_score += 10
+            data_info.status.append("Домен зарегистрирован меньше чем 3 месяцев назад")
 
     def _parse_date(self, value: str) -> datetime.datetime | None:
         normalized = value.strip()

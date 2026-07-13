@@ -16,8 +16,10 @@ export type DomainInfo = {
 
 export type SiteInfo = {
     available?: boolean;
+    has_ssl?: boolean;
     url?: string;
     error?: string;
+    screenshot?: string | null;
     title?: string | null;
     description?: string | null;
     links?: {
@@ -36,6 +38,7 @@ export type SiteInfo = {
 
 export type AnalyzeResult = {
     risk_score: number
+    status: string[]
     whois?: DomainInfo;
     virustotal?: DomainInfo;
     site?: SiteInfo;

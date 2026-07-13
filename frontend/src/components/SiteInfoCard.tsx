@@ -1,6 +1,6 @@
 import {AlertTriangle} from "lucide-react";
 
-import {SITE_SIGNAL_LABELS} from "../constants/analyze";
+import {resolveApiAssetUrl, SITE_SIGNAL_LABELS} from "../constants/analyze";
 import type {SiteInfo} from "../types/analyze";
 import {InfoRow} from "./common/InfoRow";
 import {Metric} from "./common/Metric";
@@ -11,6 +11,7 @@ type SiteInfoCardProps = {
 
 export function SiteInfoCard({site}: SiteInfoCardProps) {
     const siteSignals = site?.suspicious_signals ?? [];
+    const screenshotUrl = resolveApiAssetUrl(site?.screenshot);
 
     return (
         <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-panel sm:p-5">
@@ -33,6 +34,16 @@ export function SiteInfoCard({site}: SiteInfoCardProps) {
                         <Metric label="Формы" value={site?.forms?.total ?? 0}/>
                         <Metric label="Пароли" value={site?.forms?.password_fields ?? 0}/>
                     </div>
+
+                    {screenshotUrl ? (
+                        <div className="mt-4 overflow-hidden rounded-md border border-slate-200 bg-slate-100">
+                            <img
+                                src={screenshotUrl}
+                                alt="Скриншот сайта"
+                                className="h-auto w-full object-contain"
+                            />
+                        </div>
+                    ) : null}
 
                     {siteSignals.length > 0 ? (
                         <div className="mt-4 space-y-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-3 text-sm text-amber-800">

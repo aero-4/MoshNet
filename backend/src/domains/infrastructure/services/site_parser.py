@@ -1,10 +1,21 @@
+import asyncio
+import logging
+import subprocess
+import uuid
+from pathlib import Path
 from urllib.parse import urljoin, urlparse, urlunparse
 
 import user_agent
 
+from core.settings import settings
+from domains.domain.entities import SiteInfo
 from domains.domain.interfaces.service import ServiceI
 from domains.infrastructure.services.request import Client
 from bs4 import BeautifulSoup
+
+
+MEDIA_ROOT = Path(__file__).resolve().parents[4] / "media"
+SCREENSHOT_DIR = MEDIA_ROOT / "images"
 
 
 class SiteParser(ServiceI):
@@ -14,20 +25,94 @@ class SiteParser(ServiceI):
 
     async def get_info(self, domain: str) -> dict:
         url = self._normalize_url(domain)
+        has_input_scheme = self._has_scheme(domain)
 
+        html = await self.get_site_html(url)
+        has_ssl = urlparse(url).scheme == "https" and html is not False
+        if not html and not has_input_scheme:
+            url = self._normalize_url(domain, default_scheme="http")
+            html = await self.get_site_html(url)
+            has_ssl = False
+
+        if not html:
+            return SiteInfo(
+                available=False,
+                url=url,
+                has_ssl=has_ssl,
+                error="Не удалось загрузить страницу сайта",
+            ).model_dump()
+
+        site_data = self._parse_page(html, url)
+        site_data.has_ssl = has_ssl
+        site_data.screenshot = await asyncio.to_thread(self._make_screenshot, url)
+
+        return site_data.model_dump()
+
+    def _make_screenshot(self, domain: str) -> str | None:
+        driver = None
+        try:
+            from selenium import webdriver
+            from selenium.webdriver.chrome.options import Options
+            from selenium.webdriver.chrome.service import Service
+            from selenium.webdriver.support.ui import WebDriverWait
+
+            SCREENSHOT_DIR.mkdir(parents=True, exist_ok=True)
+            filename = f"{uuid.uuid4()}.png"
+            screen_path = SCREENSHOT_DIR / filename
+
+            options = Options()
+            options.add_argument("--headless=new")
+            options.add_argument("--disable-gpu")
+            options.add_argument("--disable-dev-shm-usage")
+            options.add_argument("--disable-extensions")
+            options.add_argument("--disable-notifications")
+            options.add_argument("--disable-software-rasterizer")
+            options.add_argument("--hide-scrollbars")
+            options.add_argument("--no-sandbox")
+            options.add_argument("--remote-debugging-pipe")
+            options.add_argument("--window-position=-32000,-32000")
+            options.add_argument("--window-size=1366,768")
+            options.add_experimental_option("excludeSwitches", ["enable-automation", "enable-logging"])
+            options.add_experimental_option("useAutomationExtension", False)
+
+            service = Service()
+            if hasattr(subprocess, "CREATE_NO_WINDOW"):
+                service.creation_flags = subprocess.CREATE_NO_WINDOW
+
+            driver = webdriver.Chrome(service=service, options=options)
+            driver.set_page_load_timeout(20)
+            driver.set_script_timeout(20)
+            driver.get(domain)
+            WebDriverWait(driver, 15).until(
+                lambda current_driver: current_driver.execute_script("return document.readyState") == "complete"
+            )
+            width = driver.execute_script(
+                "return Math.max(document.body.scrollWidth, document.documentElement.scrollWidth, 1366)"
+            )
+            height = driver.execute_script(
+                "return Math.max(document.body.scrollHeight, document.documentElement.scrollHeight, 768)"
+            )
+            driver.set_window_size(min(width, 1920), min(height, 12000))
+            driver.save_screenshot(str(screen_path))
+
+            return f"{settings.API_V1}/media/images/{filename}"
+
+        except Exception as e:
+            logging.error(e)
+            return None
+        finally:
+            if driver:
+                driver.quit()
+
+    async def get_site_html(self, url: str):
         try:
             html = await self.client.send_request("GET", url, return_json=False)
-
+            return html
         except Exception as exc:
-            return {
-                "available": False,
-                "url": url,
-                "error": str(exc),
-            }
+            logging.error(exc)
+            return False
 
-        return self._parse_page(html, url)
-
-    def _parse_page(self, html: str, url: str) -> dict:
+    def _parse_page(self, html: str, url: str) -> SiteInfo:
         soup = BeautifulSoup(html, "html.parser")
         links = self._get_all_links(html, url)
         internal_links, external_links = self._split_links(url, links)
@@ -39,7 +124,7 @@ class SiteParser(ServiceI):
             forms_info=forms_info,
         )
 
-        return {
+        return SiteInfo(**{
             "available": True,
             "url": url,
             "title": self._get_title(soup),
@@ -52,14 +137,19 @@ class SiteParser(ServiceI):
             },
             "forms": forms_info,
             "suspicious_signals": suspicious_signals,
-        }
+        })
 
-    def _normalize_url(self, domain: str) -> str:
+    def _normalize_url(self, domain: str, default_scheme: str = "https") -> str:
         value = domain.strip()
-        if not value.startswith(("http://", "https://")):
-            value = f"https://{value}"
+        parsed = urlparse(value)
 
-        return value
+        if parsed.scheme in {"http", "https"}:
+            return urlunparse(parsed)
+
+        return f"{default_scheme}://{value}"
+
+    def _has_scheme(self, value: str) -> bool:
+        return urlparse(value.strip()).scheme in {"http", "https"}
 
     def _get_all_links(self, html: str, base_url: str) -> list[str]:
         links: list[str] = []
@@ -150,11 +240,11 @@ class SiteParser(ServiceI):
         }
 
     def _get_suspicious_signals(
-        self,
-        url: str,
-        internal_links: list[str],
-        external_links: list[str],
-        forms_info: dict,
+            self,
+            url: str,
+            internal_links: list[str],
+            external_links: list[str],
+            forms_info: dict,
     ) -> list[str]:
         signals = []
 
