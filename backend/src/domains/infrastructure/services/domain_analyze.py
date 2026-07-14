@@ -54,15 +54,9 @@ class DomainsAnalyze:
         if data_info.google_safebrowsing.available and not data_info.google_safebrowsing.safe:
             data_info.risk_score += max(len(data_info.google_safebrowsing.matches), 1) * 100
 
-            for status in data_info.yandex_safebrowsing.matches:
-                data_info.status.append(f"Категория проверки {status} - присвоен статус: {status}")
-
     def _yandex_safe_browse_score(self, data_info: DomainAnalyzeInfo):
         if data_info.yandex_safebrowsing.available and not data_info.yandex_safebrowsing.safe:
             data_info.risk_score += max(len(data_info.yandex_safebrowsing.matches), 1) * 100
-
-            for status in data_info.yandex_safebrowsing.matches:
-                data_info.status.append(f"Категория проверки {status} - присвоен статус: {status}")
 
     def _virus_total_score(self, data_info: DomainAnalyzeInfo):
         if data_info.virustotal and len(data_info.virustotal.bad_statuses) > 0:
