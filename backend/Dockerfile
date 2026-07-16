@@ -4,7 +4,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
     PYTHONPATH=/app/src \
-    CHROME_BIN=/usr/bin/chromium
+    CHROME_BIN=/usr/bin/chromium \
+    CHROMEDRIVER_PATH=/usr/bin/chromedriver
 
 WORKDIR /app
 
@@ -14,8 +15,11 @@ RUN apt-get update \
         chromium \
         chromium-driver \
         fonts-liberation \
+        fonts-noto-color-emoji \
         libasound2 \
         libgbm1 \
+        libglib2.0-0 \
+        libgtk-3-0 \
         libnss3 \
         libxshmfence1 \
     && rm -rf /var/lib/apt/lists/*

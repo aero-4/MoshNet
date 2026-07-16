@@ -6,6 +6,7 @@ from domains.domain.entities import Domain
 from domains.infrastructure.services.domain_analyze import DomainsAnalyze
 
 
+
 async def start_domain_analyze(domain: Domain, domain_dep: DomainsAnalyze, redis: Redis):
     value = await redis.get(domain.domain)
     if value:

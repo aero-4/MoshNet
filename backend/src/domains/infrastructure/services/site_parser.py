@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import os
 import subprocess
 import uuid
 from pathlib import Path
@@ -64,18 +65,27 @@ class SiteParser(ServiceI):
             options.add_argument("--headless=new")
             options.add_argument("--disable-gpu")
             options.add_argument("--disable-dev-shm-usage")
+            options.add_argument("--disable-background-networking")
             options.add_argument("--disable-extensions")
             options.add_argument("--disable-notifications")
             options.add_argument("--disable-software-rasterizer")
             options.add_argument("--hide-scrollbars")
+            options.add_argument("--ignore-certificate-errors")
             options.add_argument("--no-sandbox")
+            options.add_argument("--no-default-browser-check")
+            options.add_argument("--no-first-run")
             options.add_argument("--remote-debugging-pipe")
             options.add_argument("--window-position=-32000,-32000")
             options.add_argument("--window-size=1366,768")
             options.add_experimental_option("excludeSwitches", ["enable-automation", "enable-logging"])
             options.add_experimental_option("useAutomationExtension", False)
 
-            service = Service()
+            chrome_bin = os.getenv("CHROME_BIN")
+            if chrome_bin:
+                options.binary_location = chrome_bin
+
+            chromedriver_path = os.getenv("CHROMEDRIVER_PATH")
+            service = Service(executable_path=chromedriver_path) if chromedriver_path else Service()
             if hasattr(subprocess, "CREATE_NO_WINDOW"):
                 service.creation_flags = subprocess.CREATE_NO_WINDOW
 
@@ -92,13 +102,13 @@ class SiteParser(ServiceI):
             height = driver.execute_script(
                 "return Math.max(document.body.scrollHeight, document.documentElement.scrollHeight, 768)"
             )
-            driver.set_window_size(min(width, 1920), min(height, 12000))
+            driver.set_window_size(min(int(width), 1920), min(int(height), 12000))
             driver.save_screenshot(str(screen_path))
 
             return f"{settings.API_V1}/media/images/{filename}"
 
-        except Exception as e:
-            logging.error(e)
+        except Exception:
+            logging.exception("Failed to create screenshot for %s", domain)
             return None
         finally:
             if driver:

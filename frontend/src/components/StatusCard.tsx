@@ -24,10 +24,10 @@ export function StatusCard({
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-                <Metric label="Злонамеренные" value={stats.malicious ?? 0}/>
-                <Metric label="Подозрительные" value={stats.suspicious ?? 0}/>
-                <Metric label="Безвредные" value={stats.harmless ?? 0}/>
-                <Metric label="Пустые" value={stats.undetected ?? 0}/>
+                <Metric label="Злонамеренные" value={stats.malicious ?? 0} color={"bg-red-500"}/>
+                <Metric label="Подозрительные" value={stats.suspicious ?? 0} color={"bg-yellow-500"}/>
+                <Metric label="Безвредные" value={stats.harmless ?? 0} color={"bg-green-500"}/>
+                <Metric label="Пустые" value={stats.undetected ?? 0} color={"bg-blue-500"}/>
             </div>
         </section>
     );
