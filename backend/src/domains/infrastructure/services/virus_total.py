@@ -1,3 +1,5 @@
+import logging
+
 from core.settings import settings
 from domains.domain.entities import BadStatus, DomainInfo
 from domains.domain.interfaces.service import ServiceI
@@ -41,7 +43,8 @@ class VirusTotalService(ServiceI):
                 "GET",
                 f"{self.base_url}/api/v3/domains/{domain}",
             )
-        except:
+        except Exception as e:
+            logging.exception("Error for request VirusTotal", exc_info=True)
             return None
 
     async def scan_url(self, url: str) -> dict:
