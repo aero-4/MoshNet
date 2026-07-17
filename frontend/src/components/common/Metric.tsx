@@ -3,7 +3,7 @@ type MetricProps = {
     value: number;
 };
 
-export function Metric({label, value, color="bg-slate-50"}: MetricProps) {
+export function Metric({label, value, color=""}: MetricProps) {
     return (
         <div className={`${color} rounded-md px-3 py-3`} >
             <div className="text-xs font-medium uppercase text-slate-100">{label}</div>
