@@ -57,17 +57,17 @@ services:
     build:
       context: ./backend
     restart: unless-stopped
+    env_file:
+      - .env
+      - ./backend/.env
     environment:
       DOMAIN: 0.0.0.0
       PORT: 8000
       API_V1: /api/v1
       REDIS_URI: redis://redis:6379/0
-      DATABASE_URI: ${DATABASE_URI:-}
-      VIRUS_TOTAL_API_KEY: ${VIRUS_TOTAL_API_KEY:-}
-      GOOGLE_SAFE_BROWSING_API_KEY: ${GOOGLE_SAFE_BROWSING_API_KEY:-}
-      YANDEX_SAFE_BROWSING_KEY: ${YANDEX_SAFE_BROWSING_KEY:-}
     volumes:
       - backend_media:/app/media
+      - ./backend/.env:/app/.env:ro
     depends_on:
       redis:
         condition: service_healthy

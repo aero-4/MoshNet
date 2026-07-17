@@ -21,9 +21,9 @@ class VirusTotalService(ServiceI):
         "blacklisted",
     }
 
-    def __init__(self, client: Client | None = None):
+    def __init__(self, client: Client | None = None, api_key: str | None = settings.VIRUS_TOTAL_API_KEY):
         self.base_url = "https://www.virustotal.com"
-        self.api_key = settings.VIRUS_TOTAL_API_KEY
+        self.api_key = api_key
         self.headers = {"x-apikey": self.api_key, "accept": "application/json"} if self.api_key else {"accept": "application/json"}
         self.client = client or Client(headers=self.headers)
 
@@ -49,7 +49,6 @@ class VirusTotalService(ServiceI):
             return await self.client.send_request(
                 "GET",
                 f"{self.base_url}/api/v3/domains/{domain}",
-                headers={"x-apikey": self.api_key, "accept": "application/json"}
             )
         except HTTPStatusError as exc:
             logging.warning(
