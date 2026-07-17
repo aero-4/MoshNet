@@ -15,5 +15,5 @@ async def start_domain_analyze(domain: Domain, domain_dep: DomainsAnalyze, redis
     result = await domain_dep.run(domain)
     await redis.set(domain.domain,
                     json.dumps(result.model_dump(mode="json")),
-                    ex=10000)
+                    ex=1000)
     return result

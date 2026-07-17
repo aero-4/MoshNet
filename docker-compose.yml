@@ -48,6 +48,7 @@ services:
       LETSENCRYPT_EMAIL: ${LETSENCRYPT_EMAIL:?Set LETSENCRYPT_EMAIL in .env}
     expose:
       - "80"
+
     networks:
       - web
       - app
