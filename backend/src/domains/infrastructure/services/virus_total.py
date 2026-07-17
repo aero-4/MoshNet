@@ -1,5 +1,7 @@
 import logging
 
+from httpx import HTTPStatusError
+
 from core.settings import settings
 from domains.domain.entities import BadStatus, DomainInfo
 from domains.domain.interfaces.service import ServiceI
@@ -19,16 +21,21 @@ class VirusTotalService(ServiceI):
         "blacklisted",
     }
 
-    def __init__(self):
+    def __init__(self, client: Client | None = None, api_key: str | None = settings.VIRUS_TOTAL_API_KEY):
         self.base_url = "https://www.virustotal.com"
-        self.headers = {"x-apikey": settings.VIRUS_TOTAL_API_KEY,
-                        "accept": "application/json"}
-        self.client = Client(headers=self.headers)
+        self.api_key = api_key
+        self.headers = {"x-apikey": api_key, "accept": "application/json"} if api_key else {"accept": "application/json"}
+        self.client = client or Client(headers=self.headers)
 
     async def get_info(self, domain: str) -> DomainInfo:
+        if not self.api_key:
+            logging.warning("VirusTotal API key is not configured")
+            return DomainInfo(domain_org=domain)
+
         data = await self.get_domain_info(domain)
         if not data:
-            return None
+            return DomainInfo(domain_org=domain)
+
         attributes = data.get("data", {}).get("attributes", {})
 
         return DomainInfo(
@@ -42,9 +49,17 @@ class VirusTotalService(ServiceI):
             return await self.client.send_request(
                 "GET",
                 f"{self.base_url}/api/v3/domains/{domain}",
+                headers={"x-apikey": self.api_key, "accept": "application/json"}
             )
-        except Exception as e:
-            logging.exception("Error for request VirusTotal", exc_info=True)
+        except HTTPStatusError as exc:
+            logging.warning(
+                "VirusTotal request failed: status=%s domain=%s",
+                exc.response.status_code,
+                domain,
+            )
+            return None
+        except Exception:
+            logging.exception("Error for request VirusTotal")
             return None
 
     async def scan_url(self, url: str) -> dict:

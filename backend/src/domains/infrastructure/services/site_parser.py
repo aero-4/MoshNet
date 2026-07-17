@@ -53,6 +53,7 @@ class SiteParser(ServiceI):
         driver = None
         try:
             from selenium import webdriver
+            from selenium.common.exceptions import TimeoutException
             from selenium.webdriver.chrome.options import Options
             from selenium.webdriver.chrome.service import Service
             from selenium.webdriver.support.ui import WebDriverWait
@@ -62,6 +63,7 @@ class SiteParser(ServiceI):
             screen_path = SCREENSHOT_DIR / filename
 
             options = Options()
+            options.page_load_strategy = "eager"
             options.add_argument("--headless=new")
             options.add_argument("--disable-gpu")
             options.add_argument("--disable-dev-shm-usage")
@@ -92,10 +94,20 @@ class SiteParser(ServiceI):
             driver = webdriver.Chrome(service=service, options=options)
             driver.set_page_load_timeout(20)
             driver.set_script_timeout(20)
-            driver.get(domain)
-            WebDriverWait(driver, 15).until(
-                lambda current_driver: current_driver.execute_script("return document.readyState") == "complete"
-            )
+            try:
+                driver.get(domain)
+                WebDriverWait(driver, 15).until(
+                    lambda current_driver: current_driver.execute_script(
+                        "return document.readyState"
+                    ) in {"interactive", "complete"}
+                )
+            except TimeoutException:
+                logging.warning("Timed out loading %s, trying to save partial screenshot", domain)
+                try:
+                    driver.execute_script("window.stop();")
+                except Exception:
+                    logging.debug("Failed to stop page load for %s", domain, exc_info=True)
+
             width = driver.execute_script(
                 "return Math.max(document.body.scrollWidth, document.documentElement.scrollWidth, 1366)"
             )
@@ -103,7 +115,10 @@ class SiteParser(ServiceI):
                 "return Math.max(document.body.scrollHeight, document.documentElement.scrollHeight, 768)"
             )
             driver.set_window_size(min(int(width), 1920), min(int(height), 12000))
-            driver.save_screenshot(str(screen_path))
+            saved = driver.save_screenshot(str(screen_path))
+            if not saved or not screen_path.exists() or screen_path.stat().st_size == 0:
+                logging.warning("Screenshot was not saved for %s", domain)
+                return None
 
             return f"{settings.API_V1}/media/images/{filename}"
 
