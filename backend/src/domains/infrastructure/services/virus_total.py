@@ -21,10 +21,10 @@ class VirusTotalService(ServiceI):
         "blacklisted",
     }
 
-    def __init__(self, client: Client | None = None, api_key: str | None = settings.VIRUS_TOTAL_API_KEY):
+    def __init__(self, client: Client | None = None):
         self.base_url = "https://www.virustotal.com"
-        self.api_key = api_key
-        self.headers = {"x-apikey": api_key, "accept": "application/json"} if api_key else {"accept": "application/json"}
+        self.api_key = settings.VIRUS_TOTAL_API_KEY
+        self.headers = {"x-apikey": self.api_key, "accept": "application/json"} if self.api_key else {"accept": "application/json"}
         self.client = client or Client(headers=self.headers)
 
     async def get_info(self, domain: str) -> DomainInfo:
@@ -75,7 +75,7 @@ class VirusTotalService(ServiceI):
 
     async def analysis_info(self, id: str):
         data = await self.client.send_request("GET",
-                                           f"{self.base_url}/api/v3/analyses/{id}",
+                                              f"{self.base_url}/api/v3/analyses/{id}",
                                               headers=self.headers)
         return data
 

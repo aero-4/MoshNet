@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from dotenv import find_dotenv, load_dotenv
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -6,12 +8,6 @@ load_dotenv(env_file)
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(
-        env_file=env_file,
-        env_file_encoding="utf-8",
-        extra="ignore",
-    )
-
     DOMAIN: str = "0.0.0.0"
     PORT: int = 8000
     API_V1: str = "/api/v1"
@@ -25,3 +21,4 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+print(settings)
