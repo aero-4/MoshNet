@@ -8,7 +8,9 @@ router = APIRouter()
 
 
 @router.post("/analyze/")
-async def start_analyze_domain(domain_data: Domain,
-                               domain_dep=Depends(get_domain_analyzer),
-                               redis=Depends(get_redis_client)):
+async def start_analyze_domain(
+    domain_data: Domain,
+    domain_dep=Depends(get_domain_analyzer),
+    redis=Depends(get_redis_client),
+):
     return await start_domain_analyze(domain_data, domain_dep, redis)

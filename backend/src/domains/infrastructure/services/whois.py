@@ -1,14 +1,11 @@
-import datetime
-
 from domains.domain.entities import DomainInfo
 from domains.infrastructure.services.request import Client
 
 
 class WhoDatAsService:
-
     def __init__(self):
         self.api = Client()
-        self.base_url: str = 'https://who-dat.as93.net'
+        self.base_url: str = "https://who-dat.as93.net"
 
     async def get_info(self, domain: str) -> DomainInfo:
         try:
@@ -18,11 +15,10 @@ class WhoDatAsService:
         except:
             return {}
 
-
         return DomainInfo(
             domain_org=data.get("domain"),
             created_at=data.get("dates").get("created"),
             updated_at=data.get("dates").get("updated"),
             registrar=data.get("registrar"),
-            registrant=data.get("registrant")
+            registrant=data.get("registrant"),
         )

@@ -3,7 +3,7 @@ name = "netmoshen"
 version = "0.1.0"
 description = ""
 authors = [
-    {name = "aero-4",email = "dimongames6@gmail.com"}
+    { name = "aero-4", email = "dimongames6@gmail.com" }
 ]
 requires-python = ">=3.13"
 dependencies = [
@@ -21,7 +21,8 @@ dependencies = [
     "bs4 (>=0.0.2,<0.0.3)",
     "python-dateutil (>=2.9.0.post0,<3.0.0)",
     "selenium (>=4.46.0,<5.0.0)",
-    "redis (>=8.0.1,<9.0.0)"
+    "redis (>=8.0.1,<9.0.0)",
+    "ruff (>=0.15.22,<0.16.0)",
 ]
 
 
@@ -32,3 +33,15 @@ package-mode = false
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+
+[tool.ruff]
+target-version = "py313"
+line-length = 88
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "B", "UP"]
+ignore = []
+
+[tool.ruff.format]
+quote-style = "double"

@@ -1,4 +1,3 @@
-from fastapi import Depends
 from redis.asyncio import Redis
 
 from core.settings import settings
@@ -10,4 +9,5 @@ def get_domain_analyzer():
 
 
 def get_redis_client():
-    return Redis.from_url(url=settings.REDIS_URI)
+    redis = Redis.from_url(url=settings.REDIS_URI)
+    return redis

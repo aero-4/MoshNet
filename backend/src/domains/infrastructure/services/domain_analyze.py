@@ -1,8 +1,6 @@
 import asyncio
 import datetime
 
-import httpx
-
 from domains.domain.entities import Domain, DomainAnalyzeInfo
 from domains.domain.interfaces.service import ServiceI
 from domains.infrastructure.services.google_safebrowsing import GoogleSafeBrowsing
@@ -14,7 +12,6 @@ from domains.infrastructure.services.yandex_safebrowsing import YandexSafeBrowsi
 
 
 class DomainsAnalyze:
-
     def __init__(self):
         self.client = Client()
         self.services: dict[str, ServiceI] = {
@@ -34,9 +31,12 @@ class DomainsAnalyze:
             "google_safebrowsing": domain_data.url,
             "yandex_safebrowsing": domain_data.url,
         }
-        result = await asyncio.gather(*[
-            service.get_info(service_inputs[key]) for key, service in self.services.items()
-        ])
+        result = await asyncio.gather(
+            *[
+                service.get_info(service_inputs[key])
+                for key, service in self.services.items()
+            ]
+        )
         result = DomainAnalyzeInfo(**dict(zip(keys, result)))
 
         self.risk_score(result)
@@ -51,19 +51,31 @@ class DomainsAnalyze:
         self._has_https_score(data_info)
 
     def _google_safe_browse_score(self, data_info: DomainAnalyzeInfo):
-        if data_info.google_safebrowsing.available and not data_info.google_safebrowsing.safe:
-            data_info.risk_score += max(len(data_info.google_safebrowsing.matches), 1) * 100
+        if (
+            data_info.google_safebrowsing.available
+            and not data_info.google_safebrowsing.safe
+        ):
+            data_info.risk_score += (
+                max(len(data_info.google_safebrowsing.matches), 1) * 100
+            )
 
     def _yandex_safe_browse_score(self, data_info: DomainAnalyzeInfo):
-        if data_info.yandex_safebrowsing.available and not data_info.yandex_safebrowsing.safe:
-            data_info.risk_score += max(len(data_info.yandex_safebrowsing.matches), 1) * 100
+        if (
+            data_info.yandex_safebrowsing.available
+            and not data_info.yandex_safebrowsing.safe
+        ):
+            data_info.risk_score += (
+                max(len(data_info.yandex_safebrowsing.matches), 1) * 100
+            )
 
     def _virus_total_score(self, data_info: DomainAnalyzeInfo):
         if data_info.virustotal and len(data_info.virustotal.bad_statuses) > 0:
             data_info.risk_score += len(data_info.virustotal.bad_statuses) * 100
 
             for status in data_info.virustotal.bad_statuses:
-                data_info.status.append(f"Проверка от {status.source} - присвоен статус: {status.result}")
+                data_info.status.append(
+                    f"Проверка от {status.source} - присвоен статус: {status.result}"
+                )
 
     def _has_https_score(self, data_info: DomainAnalyzeInfo) -> None:
         if not data_info.site.has_ssl:

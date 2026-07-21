@@ -11,9 +11,9 @@ class GoogleSafeBrowsing(ServiceI):
         self.client = client or Client()
 
     async def get_info(
-            self,
-            domain: str,
-            api_key: str | None = settings.GOOGLE_SAFE_BROWSING_API_KEY,
+        self,
+        domain: str,
+        api_key: str | None = settings.GOOGLE_SAFE_BROWSING_API_KEY,
     ) -> GoogleSafeBrowsingInfo | None:
         if not api_key:
             return GoogleSafeBrowsingInfo(available=False)

@@ -7,9 +7,7 @@ from starlette.middleware.cors import CORSMiddleware
 from core.settings import settings
 from domains.presentation.api import router as api_router_domains
 
-app = FastAPI(
-    root_path=settings.API_V1
-)
+app = FastAPI(root_path=settings.API_V1)
 
 
 app.add_middleware(

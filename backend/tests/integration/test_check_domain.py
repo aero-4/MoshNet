@@ -1,24 +1,19 @@
 import pytest
 
-from domains.infrastructure.services.google_safebrowsing import GoogleSafeBrowsing
 from domains.infrastructure.services.site_parser import SiteParser
 from domains.infrastructure.services.virus_total import VirusTotalService
 from domains.infrastructure.services.whois import WhoDatAsService
 from domains.infrastructure.services.yandex_safebrowsing import YandexSafeBrowsing
 
 
-@pytest.mark.parametrize(
-    "domain", ["google.com", "yandex.ru", "nvidia.com"]
-)
+@pytest.mark.parametrize("domain", ["google.com", "yandex.ru", "nvidia.com"])
 async def test_check_domain_who_dat(domain):
     service = WhoDatAsService()
     data = await service.get_info(domain=domain)
     assert data.domain_org == domain
 
 
-@pytest.mark.parametrize(
-    "domain", ["google.com", "yandex.ru", "nvidia.com"]
-)
+@pytest.mark.parametrize("domain", ["google.com", "yandex.ru", "nvidia.com"])
 async def test_check_domain_virus_total(domain):
     service = VirusTotalService()
     data = await service.get_info(domain=domain)
@@ -46,13 +41,7 @@ async def test_check_domain_site_parser():
     data = await service.get_info(url)
 
     assert data.get("url") == url
-    assert data.get("available") == True
-
-
-async def test_check_domain_google_safe_browsing():
-    url = "wwwwwwwww.jodi.org"
-    service = GoogleSafeBrowsing()
-    data = await service.get_info(url)
+    assert data.get("available") is True
 
 
 async def test_check_domain_yandex_safe_browsing():

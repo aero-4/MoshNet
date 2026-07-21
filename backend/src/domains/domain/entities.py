@@ -3,7 +3,6 @@ from urllib.parse import urlparse
 from pydantic import BaseModel, Field, model_validator
 
 
-
 class Domain(BaseModel):
     domain: str
     url: str | None = None
@@ -14,7 +13,11 @@ class Domain(BaseModel):
         if not raw_value:
             raise ValueError("Введите ссылку")
 
-        url = raw_value if raw_value.startswith(("http://", "https://")) else f"https://{raw_value}"
+        url = (
+            raw_value
+            if raw_value.startswith(("http://", "https://"))
+            else f"https://{raw_value}"
+        )
         parsed = urlparse(url)
         if not parsed.hostname:
             raise ValueError("Ссылка имеет неправильный формат")

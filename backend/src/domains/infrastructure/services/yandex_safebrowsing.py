@@ -1,3 +1,5 @@
+import logging
+
 from core.settings import settings
 from domains.domain.entities import YandexSafeBrowsingInfo
 from domains.domain.interfaces.service import ServiceI
@@ -46,7 +48,8 @@ class YandexSafeBrowsing(ServiceI):
                 json=payload,
                 params={"key": api_key},
             )
-        except:
+        except Exception:
+            logging.exception(exc_info=True)
             return YandexSafeBrowsingInfo(available=False)
 
         matches = data.get("matches", [])

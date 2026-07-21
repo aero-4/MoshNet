@@ -7,13 +7,12 @@ from pathlib import Path
 from urllib.parse import urljoin, urlparse, urlunparse
 
 import user_agent
+from bs4 import BeautifulSoup
 
 from core.settings import settings
 from domains.domain.entities import SiteInfo
 from domains.domain.interfaces.service import ServiceI
 from domains.infrastructure.services.request import Client
-from bs4 import BeautifulSoup
-
 
 MEDIA_ROOT = Path(__file__).resolve().parents[4] / "media"
 SCREENSHOT_DIR = MEDIA_ROOT / "images"
@@ -79,7 +78,9 @@ class SiteParser(ServiceI):
             options.add_argument("--remote-debugging-pipe")
             options.add_argument("--window-position=-32000,-32000")
             options.add_argument("--window-size=1366,768")
-            options.add_experimental_option("excludeSwitches", ["enable-automation", "enable-logging"])
+            options.add_experimental_option(
+                "excludeSwitches", ["enable-automation", "enable-logging"]
+            )
             options.add_experimental_option("useAutomationExtension", False)
 
             chrome_bin = os.getenv("CHROME_BIN")
@@ -87,7 +88,11 @@ class SiteParser(ServiceI):
                 options.binary_location = chrome_bin
 
             chromedriver_path = os.getenv("CHROMEDRIVER_PATH")
-            service = Service(executable_path=chromedriver_path) if chromedriver_path else Service()
+            service = (
+                Service(executable_path=chromedriver_path)
+                if chromedriver_path
+                else Service()
+            )
             if hasattr(subprocess, "CREATE_NO_WINDOW"):
                 service.creation_flags = subprocess.CREATE_NO_WINDOW
 
@@ -97,16 +102,21 @@ class SiteParser(ServiceI):
             try:
                 driver.get(domain)
                 WebDriverWait(driver, 15).until(
-                    lambda current_driver: current_driver.execute_script(
-                        "return document.readyState"
-                    ) in {"interactive", "complete"}
+                    lambda current_driver: (
+                        current_driver.execute_script("return document.readyState")
+                        in {"interactive", "complete"}
+                    )
                 )
             except TimeoutException:
-                logging.warning("Timed out loading %s, trying to save partial screenshot", domain)
+                logging.warning(
+                    "Timed out loading %s, trying to save partial screenshot", domain
+                )
                 try:
                     driver.execute_script("window.stop();")
                 except Exception:
-                    logging.debug("Failed to stop page load for %s", domain, exc_info=True)
+                    logging.debug(
+                        "Failed to stop page load for %s", domain, exc_info=True
+                    )
 
             width = driver.execute_script(
                 "return Math.max(document.body.scrollWidth, document.documentElement.scrollWidth, 1366)"
@@ -149,20 +159,22 @@ class SiteParser(ServiceI):
             forms_info=forms_info,
         )
 
-        return SiteInfo(**{
-            "available": True,
-            "url": url,
-            "title": self._get_title(soup),
-            "description": self._get_description(soup),
-            "links": {
-                "total": len(links),
-                "internal": len(internal_links),
-                "external": len(external_links),
-                "sample": links,
-            },
-            "forms": forms_info,
-            "suspicious_signals": suspicious_signals,
-        })
+        return SiteInfo(
+            **{
+                "available": True,
+                "url": url,
+                "title": self._get_title(soup),
+                "description": self._get_description(soup),
+                "links": {
+                    "total": len(links),
+                    "internal": len(internal_links),
+                    "external": len(external_links),
+                    "sample": links,
+                },
+                "forms": forms_info,
+                "suspicious_signals": suspicious_signals,
+            }
+        )
 
     def _normalize_url(self, domain: str, default_scheme: str = "https") -> str:
         value = domain.strip()
@@ -203,7 +215,9 @@ class SiteParser(ServiceI):
 
         return urlunparse(parsed._replace(fragment=""))
 
-    def _split_links(self, base_url: str, links: list[str]) -> tuple[list[str], list[str]]:
+    def _split_links(
+        self, base_url: str, links: list[str]
+    ) -> tuple[list[str], list[str]]:
         base_host = self._host_without_www(base_url)
         internal_links = []
         external_links = []
@@ -265,11 +279,11 @@ class SiteParser(ServiceI):
         }
 
     def _get_suspicious_signals(
-            self,
-            url: str,
-            internal_links: list[str],
-            external_links: list[str],
-            forms_info: dict,
+        self,
+        url: str,
+        internal_links: list[str],
+        external_links: list[str],
+        forms_info: dict,
     ) -> list[str]:
         signals = []
 
